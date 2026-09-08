@@ -2,148 +2,227 @@ package visao;
 
 import dados.ArquivoUsuarios;
 import entidades.Usuario;
-import util.Seguranca;
 import java.util.Scanner;
+import util.Seguranca;
 
-public class MenuAcesso{
+public class MenuAcesso {
 
-    private Scanner scanner;
     private ArquivoUsuarios arqUsuarios;
+    private static Scanner console = new Scanner(System.in);
 
-    public MenuAcesso(Scanner scanner, ArquivoUsuarios arqUsuarios){
-        this.arqUsuarios = arqUsuarios;
-        this.scanner = scanner;
+    public MenuAcesso() throws Exception {
+        arqUsuarios = new ArquivoUsuarios();
     }
 
-    public Usuario exibir(){
-        int opcao = -1;
-        Usuario usuarioLogado = null;
+    public void inicio() {
+        String opcao = "";
+        do {
+            System.out.println("\n-----------------------------");
+            System.out.println("AJUDA AÍ 1.0");
+            System.out.println("-----------------------------");
+            System.out.println("1) Acesso ao Sistema (Login)");
+            System.out.println("2) Novo Usuário (Primeiro Acesso)");
+            System.out.println("S) Sair");
+            System.out.print("Opção: ");
+            opcao = console.nextLine().trim().toUpperCase();
 
-        while (opcao != 0 && usuarioLogado == null) {
-            System.out.println("\n=== SISTEMA DE PERGUNTAS E RESPOSTAS ===");
-            System.out.println("1. Acessar (Login)");
-            System.out.println("2. Novo usuario (Cadastro)");
-            System.out.println("3. Esqueci minha senha");
-            System.out.println("0. Sair");
-            System.out.print("Escolha uma opcao: ");
             try {
-                opcao = Integer.parseInt(scanner.nextLine());
                 switch (opcao) {
-                    case 1:
-                        usuarioLogado = fazerLogin();
-                        break;
-                    case 2:
-                        cadastrarUsuario();
-                        break;
-                    case 3:
-                        recuperarSenha();
-                        break;
-                    case 0:
-                        System.out.println("Saindo do sistema...");
-                        break;
-                    default:
-                        System.out.println("Opcao invalida!");
+                    case "1": login(); break;
+                    case "2": novoUsuario(); break;
+                    case "S": System.out.println("Saindo do sistema..."); break;
+                    default: System.out.println("Opção inválida!");
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Por favor, digite um numero valido.");
             } catch (Exception e) {
                 System.out.println("Erro: " + e.getMessage());
             }
-        }
-
-        return usuarioLogado;
+        } while (!opcao.equals("S"));
     }
 
+    private void novoUsuario() throws Exception {
+        System.out.println("\n--- NOVO USUÁRIO ---");
+        System.out.print("Email: ");
+        String email = console.nextLine().trim();
 
-    private Usuario fazerLogin() throws Exception{
+        if (arqUsuarios.readByEmail(email) != null) {
+            System.out.println("Erro: E-mail já cadastrado no sistema!");
+            return;
+        }
 
-        System.out.println("\n--- LOGIN ---");
-        System.out.print("E-mail: ");
-        String email = scanner.nextLine();
+        System.out.print("Nome: ");
+        String nome = console.nextLine().trim();
         System.out.print("Senha: ");
-        String senha = scanner.nextLine();
+        String senha = console.nextLine().trim();
+        System.out.print("Pergunta Secreta (para recuperação): ");
+        String pergunta = console.nextLine().trim();
+        System.out.print("Resposta Secreta: ");
+        String resposta = console.nextLine().trim();
 
-        Usuario u = arqUsuarios.autenticar(email,senha);
-
-        if(u != null){
-            System.out.println("Login realizado com sucesso! Bem-vindo, " + u.getNome() + ".");
-            return u;
-        }else{
-            System.out.println("E-mail ou senha incorretos.");
-            return null;
-        }
-
+        Usuario u = new Usuario(nome, email, senha, pergunta, resposta);
+        int id = arqUsuarios.create(u);
+        System.out.println("\nUsuário cadastrado com sucesso (ID " + id + ")! Faça o primeiro acesso.");
     }
 
+    private void login() throws Exception {
+        System.out.println("\n--- ACESSO AO SISTEMA ---");
+        System.out.print("Email: ");
+        String email = console.nextLine().trim();
+        System.out.print("Senha: ");
+        String senha = console.nextLine().trim();
 
-    private void recuperarSenha(){
-
-        System.out.println("\n--- RECUPERACAO DE SENHA ---");
-
-        try {
-            System.out.print("Digite seu e-mail: ");
-            String email = scanner.nextLine();
-
-            Usuario u = arqUsuarios.readByEmail(email);
-            if (u == null) {
-                System.out.println("E-mail nao encontrado.");
-                return;
+        Usuario usuarioLogado = arqUsuarios.autenticar(email, senha);
+        if (usuarioLogado != null) {
+            System.out.println("\nLogin realizado com sucesso! Bem-vindo(a), " + usuarioLogado.getNome() + ".");
+            menuPrincipal(usuarioLogado);
+        } else {
+            System.out.println("\nE-mail ou senha incorretos.");
+            System.out.print("Deseja tentar recuperar a senha? (S/N): ");
+            String op = console.nextLine().trim();
+            if (op.equalsIgnoreCase("S")) {
+                recuperarSenha(email);
             }
+        }
+    }
 
-            System.out.println("Pergunta Secreta: " + u.getPerguntaSecreta());
-            System.out.print("Sua Resposta: ");
-            String respostaInput = scanner.nextLine();
+    private void recuperarSenha(String emailInformado) throws Exception {
+        System.out.println("\n--- RECUPERAÇÃO DE SENHA ---");
+        Usuario u = arqUsuarios.readByEmail(emailInformado);
+        if (u == null) {
+            System.out.print("Informe o e-mail cadastrado: ");
+            String email = console.nextLine().trim();
+            u = arqUsuarios.readByEmail(email);
+        }
 
-            
-            String hashRespostaInput = Seguranca.hashSHA256(respostaInput);
-            if (u.getHashRespostaSecreta().equals(hashRespostaInput)) {
-                System.out.print("Digite a nova senha: ");
-                String novaSenha = scanner.nextLine();
+        if (u == null) {
+            System.out.println("Erro: E-mail não encontrado.");
+            return;
+        }
 
-                
-                u.setHashSenha(Seguranca.hashSHA256(novaSenha));
-                arqUsuarios.update(u);
+        System.out.println("Pergunta Secreta: " + u.getPerguntaSecreta());
+        System.out.print("Sua Resposta: ");
+        String respostaDigitada = console.nextLine().trim();
 
-                System.out.println("Senha alterada com sucesso! Agora voce pode fazer login.");
-            } else {
-                System.out.println("Resposta incorreta.");
+        String hashResp = Seguranca.hashSHA256(respostaDigitada);
+        if (u.getHashRespostaSecreta().equals(hashResp)) {
+            System.out.print("Resposta correta! Digite a nova senha: ");
+            String novaSenha = console.nextLine().trim();
+            arqUsuarios.atualizarSenha(u, novaSenha);
+            System.out.println("Senha redefinida com sucesso! Faça login novamente.");
+        } else {
+            System.out.println("Resposta incorreta! Não foi possível redefinir a senha.");
+        }
+    }
+
+    private void menuPrincipal(Usuario usuarioLogado) throws Exception {
+        String opcao = "";
+        do {
+            System.out.println("\nAJUDA AÍ 1.0");
+            System.out.println("> Inicio");
+            System.out.println("(A) Minha área");
+            System.out.println("(B) Buscar perguntas");
+            System.out.println("(S) Sair");
+            System.out.print("Opção: ");
+            opcao = console.nextLine().trim().toUpperCase();
+
+            switch (opcao) {
+                case "A": minhaArea(usuarioLogado); break;
+                case "B": System.out.println("Funcionalidade reservada para a próxima etapa (TP02)."); break;
+                case "S": System.out.println("Saindo da área pessoal..."); break;
+                default: System.out.println("Opção inválida!");
             }
-
-        } catch (Exception e) {
-            System.out.println("Erro na recuperacao: " + e.getMessage());
-        }
+        } while (!opcao.equals("S"));
     }
 
+    private void minhaArea(Usuario usuarioLogado) throws Exception {
+        String opcao = "";
+        do {
+            System.out.println("\nAJUDA AÍ 1.0");
+            System.out.println("> Inicio > Minha área");
+            System.out.println("(A) Meus dados");
+            System.out.println("(B) Minhas perguntas");
+            System.out.println("(C) Minhas respostas");
+            System.out.println("(D) Meus votos");
+            System.out.println("(R) Retornar ao menu anterior");
+            System.out.print("Opção: ");
+            opcao = console.nextLine().trim().toUpperCase();
 
+            switch (opcao) {
+                case "A": meusDados(usuarioLogado); break;
+                case "B": System.out.println("Redirecionando para a área de perguntas..."); break;
+                case "C":
+                case "D": System.out.println("Opção não disponível nesta etapa."); break;
+                case "R": break;
+                default: System.out.println("Opção inválida!");
+            }
+        } while (!opcao.equals("R"));
+    }
 
-    private void cadastrarUsuario() {
-        System.out.println("\n--- NOVO CADASTRO ---");
+    private void meusDados(Usuario usuarioLogado) throws Exception {
+        String opcao = "";
+        do {
+            System.out.println("\nAJUDA AÍ 1.0");
+            System.out.println("> Inicio > Minha área > Meus dados");
+            System.out.println("(A) Alterar nome");
+            System.out.println("(B) Alterar email");
+            System.out.println("(C) Alterar senha");
+            System.out.println("(D) Alterar pergunta e resposta de recuperação da senha");
+            System.out.println("(R) Retornar ao menu anterior");
+            System.out.print("Opção: ");
+            opcao = console.nextLine().trim().toUpperCase();
+
+            switch (opcao) {
+                case "A":
+                    System.out.print("Novo Nome: ");
+                    String novoNome = console.nextLine().trim();
+                    if (!novoNome.isEmpty()) {
+                        usuarioLogado.setNome(novoNome);
+                        arqUsuarios.update(usuarioLogado);
+                        System.out.println("Nome atualizado com sucesso!");
+                    }
+                    break;
+
+                case "B":
+                    System.out.print("Novo E-mail: ");
+                    String novoEmail = console.nextLine().trim();
+                    if (!novoEmail.isEmpty()) {
+                        String emailAntigo = usuarioLogado.getEmail();
+                        arqUsuarios.atualizarEmail(usuarioLogado, emailAntigo, novoEmail);
+                        System.out.println("E-mail e índice de busca atualizados com sucesso!");
+                    }
+                    break;
+
+                case "C":
+                    System.out.print("Nova Senha: ");
+                    String novaSenha = console.nextLine().trim();
+                    if (!novaSenha.isEmpty()) {
+                        arqUsuarios.atualizarSenha(usuarioLogado, novaSenha);
+                        System.out.println("Senha atualizada com sucesso!");
+                    }
+                    break;
+
+                case "D":
+                    System.out.print("Nova Pergunta Secreta: ");
+                    String novaP = console.nextLine().trim();
+                    System.out.print("Nova Resposta Secreta: ");
+                    String novaR = console.nextLine().trim();
+                    if (!novaP.isEmpty() && !novaR.isEmpty()) {
+                        arqUsuarios.atualizarPerguntaEAntena(usuarioLogado, novaP, novaR);
+                        System.out.println("Pergunta e resposta de segurança atualizadas com sucesso!");
+                    }
+                    break;
+
+                case "R": break;
+                default: System.out.println("Opção inválida!");
+            }
+        } while (!opcao.equals("R"));
+    }
+
+    public static void main(String[] args) {
         try {
-            System.out.print("Nome completo: ");
-            String nome = scanner.nextLine();
-
-            System.out.print("E-mail: ");
-            String email = scanner.nextLine();
-
-            System.out.print("Senha: ");
-            String senha = scanner.nextLine();
-
-            System.out.print("Pergunta Secreta (para recuperacao): ");
-            String pergunta = scanner.nextLine();
-
-            System.out.print("Resposta Secreta: ");
-            String resposta = scanner.nextLine();
-
-            
-            Usuario novo = new Usuario(-1, nome, email, senha, pergunta, Seguranca.hashSHA256(resposta));
-            
-            int id = arqUsuarios.create(novo);
-            System.out.println("Usuario cadastrado com sucesso! (ID: " + id + ")");
-
+            MenuAcesso menu = new MenuAcesso();
+            menu.inicio();
         } catch (Exception e) {
-            System.out.println("Erro ao cadastrar: " + e.getMessage());
+            e.printStackTrace();
         }
     }
-
 }
-

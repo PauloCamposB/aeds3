@@ -11,9 +11,7 @@ public class ArquivoUsuarios extends Arquivo<Usuario> {
     private HashExtensivel<ParEmailID> indiceEmail;
 
     public ArquivoUsuarios() throws Exception {
-        // Passa o construtor da entidade Usuario e o nome do arquivo .db
-       super("usuarios.db", Usuario.class.getConstructor());
-        // Inicializa a Tabela Hash Extensivel para e-mails
+        super("usuarios.db", Usuario.class.getConstructor());
         indiceEmail = new HashExtensivel<>(
             ParEmailID.class.getConstructor(),
             4,
@@ -24,21 +22,19 @@ public class ArquivoUsuarios extends Arquivo<Usuario> {
 
     @Override
     public int create(Usuario usuario) throws Exception {
-        // 1. Verifica se e-mail ja existe na Tabela Hash
+        //Verifica se e-mail ja existe na Tabela Hash
         ParEmailID existe = indiceEmail.read(ParEmailID.hash(usuario.getEmail()));
         if (existe != null && existe.getId() != -1) {
             throw new Exception("E-mail ja cadastrado!");
         }
 
-        // 2. Aplica Hash SHA-256 na senha
-        String senhaHash = Seguranca.hashSHA256(usuario.getHashSenha());
-        usuario.setHashSenha(senhaHash);
+        //Criptografa senha e resposta secreta com SHA-256
+        usuario.setHashSenha(Seguranca.hashSHA256(usuario.getHashSenha()));
+        usuario.setHashRespostaSecreta(Seguranca.hashSHA256(usuario.getHashRespostaSecreta()));
 
-        // 3. Salva no arquivo de dados principal
+        //Salva no arquivo principal e insere no indice Hash
         int id = super.create(usuario);
         usuario.setId(id);
-
-        // 4. Cadastra a relacao (Email -> ID) na Hash Extensivel
         indiceEmail.create(new ParEmailID(usuario.getEmail(), id));
 
         return id;
@@ -61,5 +57,40 @@ public class ArquivoUsuarios extends Arquivo<Usuario> {
             }
         }
         return null;
+    }
+
+    // Atualiza o e-mail na Tabela Hash se o e-mail tiver mudado
+    public boolean atualizarEmail(Usuario u, String emailAntigo, String novoEmail) throws Exception {
+        // Verifica se o novo email ja pertence a outro usuario
+        ParEmailID existe = indiceEmail.read(ParEmailID.hash(novoEmail));
+        if (existe != null && existe.getId() != -1 && existe.getId() != u.getId()) {
+            throw new Exception("O novo e-mail ja esta em uso por outro usuario!");
+        }
+
+        // Remove a chave antiga da Tabela Hash
+        indiceEmail.delete(ParEmailID.hash(emailAntigo));
+
+        // Atualiza a entidade
+        u.setEmail(novoEmail);
+        boolean ok = super.update(u);
+
+        // Insere a nova chave na Tabela Hash
+        if (ok) {
+            indiceEmail.create(new ParEmailID(novoEmail, u.getId()));
+        }
+        return ok;
+    }
+
+    // Atualiza senha criptografando novamente
+    public boolean atualizarSenha(Usuario u, String novaSenha) throws Exception {
+        u.setHashSenha(Seguranca.hashSHA256(novaSenha));
+        return super.update(u);
+    }
+
+    // Atualiza Pergunta e Resposta Secreta
+    public boolean atualizarPerguntaEAntena(Usuario u, String pergunta, String resposta) throws Exception {
+        u.setPerguntaSecreta(pergunta);
+        u.setHashRespostaSecreta(Seguranca.hashSHA256(resposta));
+        return super.update(u);
     }
 }
