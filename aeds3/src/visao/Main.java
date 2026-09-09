@@ -1,7 +1,7 @@
+package visao;
 import dados.ArquivoUsuarios;
 import entidades.Usuario;
 import java.util.Scanner;
-import visao.MenuAcesso;
 
 public class Main {
     public static void main(String[] args) {
@@ -10,9 +10,9 @@ public class Main {
         try {
             ArquivoUsuarios arqUsuarios = new ArquivoUsuarios();
 
-            // Passa arqUsuarios e scanner exatamente nesta ordem
-           MenuAcesso menuAcesso = new MenuAcesso(scanner, arqUsuarios);
-            Usuario usuarioLogado = menuAcesso.exibir();
+          
+           MenuAcesso menuAcesso = new MenuAcesso();
+            Usuario usuarioLogado = menuAcesso.inicio();
 
             if (usuarioLogado != null) {
                 System.out.println("\n[SISTEMA] Usuario " + usuarioLogado.getNome() + " conectado com sucesso!");

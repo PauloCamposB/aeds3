@@ -14,7 +14,7 @@ public class MenuAcesso {
         arqUsuarios = new ArquivoUsuarios();
     }
 
-    public void inicio() {
+    public Usuario inicio() throws Exception{
         String opcao = "";
         do {
             System.out.println("\n-----------------------------");
@@ -37,6 +37,8 @@ public class MenuAcesso {
                 System.out.println("Erro: " + e.getMessage());
             }
         } while (!opcao.equals("S"));
+
+        return null;
     }
 
     private void novoUsuario() throws Exception {
