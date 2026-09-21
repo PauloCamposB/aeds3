@@ -20,8 +20,8 @@ public class ParIntInt implements RegistroArvoreBMais<ParIntInt> {
         this.idPergunta = idPergunta;
     }
 
-    public int getIdUsuario() { return idUsuario; }
-    public int getIdPergunta() { return idPergunta; }
+    public int getIdUsuario() { return this.idUsuario; }
+    public int getIdPergunta() { return this.idPergunta; }
 
     @Override
     public ParIntInt clone() {

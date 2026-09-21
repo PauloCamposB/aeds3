@@ -3,10 +3,9 @@ package dados;
 import entidades.Pergunta;
 import estruturas.Arquivo;
 import estruturas.ArvoreBMais;
-import util.ParIntInt;
-
 import java.io.File;
 import java.util.ArrayList;
+import util.ParIntInt;
 
 public class ArquivoPergunta extends Arquivo<Pergunta> {
 
@@ -45,8 +44,48 @@ public class ArquivoPergunta extends Arquivo<Pergunta> {
         }
         return false;
     }
-    public ArrayList<Pergunta> readByUsuario(int idUsuario) throws Exception {
+
+    public boolean desarquivar(int idPergunta) throws Exception {
+        Pergunta p = super.read(idPergunta);
+        if (p != null) {
+            p.setAtiva(true);
+            return super.update(p);
+        }
+        return false;
+    }
+
+    public Pergunta getPergunta(int idPergunta) throws Exception {
+        return super.read(idPergunta);
+    }
+
+    public boolean updatePergunta(Pergunta p) throws Exception {
+        return super.update(p);
+    }
+
+    public ArrayList<Pergunta> findByUsuario(int idUsuario, int page) throws Exception {
         ArrayList<Pergunta> lista = new ArrayList<>();
+        ArrayList<ParIntInt> chaves = indiceUsuarioPergunta.readAll();
+        for (ParIntInt chave : chaves) {
+            if (chave.getIdUsuario() == idUsuario) {
+                Pergunta p = super.read(chave.getIdPergunta());
+                if (p != null) {
+                    lista.add(p);
+                }
+            }
+        }
+        return lista;
+    }
+    public ArrayList<Pergunta> findActiveByUsuario(int idUsuario, int page) throws Exception {
+        ArrayList<Pergunta> lista = new ArrayList<>();
+        ArrayList<ParIntInt> chaves = indiceUsuarioPergunta.readAll();
+        for (ParIntInt chave : chaves) {
+            if (chave.getIdUsuario() == idUsuario) {
+                Pergunta p = super.read(chave.getIdPergunta());
+                if (p != null && p.isAtiva()) {
+                    lista.add(p);
+                }
+            }
+        }
         return lista;
     }
 }

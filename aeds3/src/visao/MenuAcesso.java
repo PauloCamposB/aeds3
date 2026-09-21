@@ -1,20 +1,25 @@
 package visao;
 
+import dados.ArquivoPergunta;
 import dados.ArquivoUsuarios;
+import entidades.Pergunta;
 import entidades.Usuario;
+import java.util.ArrayList;
 import java.util.Scanner;
 import util.Seguranca;
 
 public class MenuAcesso {
 
     private ArquivoUsuarios arqUsuarios;
+    private ArquivoPergunta arqPerguntas;
     private static Scanner console = new Scanner(System.in);
 
     public MenuAcesso() throws Exception {
         arqUsuarios = new ArquivoUsuarios();
+        arqPerguntas = new ArquivoPergunta();
     }
 
-    public Usuario inicio() throws Exception{
+    public Usuario inicio() throws Exception {
         String opcao = "";
         do {
             System.out.println("\n-----------------------------");
@@ -28,10 +33,17 @@ public class MenuAcesso {
 
             try {
                 switch (opcao) {
-                    case "1": login(); break;
-                    case "2": novoUsuario(); break;
-                    case "S": System.out.println("Saindo do sistema..."); break;
-                    default: System.out.println("Opção inválida!");
+                    case "1":
+                        login();
+                        break;
+                    case "2":
+                        novoUsuario();
+                        break;
+                    case "S":
+                        System.out.println("Saindo do sistema...");
+                        break;
+                    default:
+                        System.out.println("Opção inválida!");
                 }
             } catch (Exception e) {
                 System.out.println("Erro: " + e.getMessage());
@@ -127,10 +139,17 @@ public class MenuAcesso {
             opcao = console.nextLine().trim().toUpperCase();
 
             switch (opcao) {
-                case "A": minhaArea(usuarioLogado); break;
-                case "B": System.out.println("Funcionalidade reservada para a próxima etapa (TP02)."); break;
-                case "S": System.out.println("Saindo da área pessoal..."); break;
-                default: System.out.println("Opção inválida!");
+                case "A":
+                    minhaArea(usuarioLogado);
+                    break;
+                case "B":
+                    System.out.println("Funcionalidade reservada para a próxima etapa (TP02).");
+                    break;
+                case "S":
+                    System.out.println("Saindo da área pessoal...");
+                    break;
+                default:
+                    System.out.println("Opção inválida!");
             }
         } while (!opcao.equals("S"));
     }
@@ -149,12 +168,22 @@ public class MenuAcesso {
             opcao = console.nextLine().trim().toUpperCase();
 
             switch (opcao) {
-                case "A": meusDados(usuarioLogado); break;
-                case "B": System.out.println("Redirecionando para a área de perguntas..."); break;
+                case "A":
+                    meusDados(usuarioLogado);
+                    break;
+                case "B":
+                    System.out.println("Redirecionando para a área de perguntas...");
+                    minhasPerguntas(usuarioLogado);
+                    break;
                 case "C":
-                case "D": System.out.println("Opção não disponível nesta etapa."); break;
-                case "R": break;
-                default: System.out.println("Opção inválida!");
+                    System.out.println("Opção não disponível nesta etapa.");
+                case "D":
+                    System.out.println("Opção não disponível nesta etapa.");
+                    break;
+                case "R":
+                    break;
+                default:
+                    System.out.println("Opção inválida!");
             }
         } while (!opcao.equals("R"));
     }
@@ -213,10 +242,365 @@ public class MenuAcesso {
                     }
                     break;
 
-                case "R": break;
-                default: System.out.println("Opção inválida!");
+                case "R":
+                    break;
+                default:
+                    System.out.println("Opção inválida!");
             }
         } while (!opcao.equals("R"));
+    }
+
+    private void minhasPerguntas(Usuario usuarioLogado) {
+        String opcao = "";
+        do {
+            System.out.println("\nAJUDA AÍ 1.0");
+            System.out.println("> Inicio > Minha área > Minhas perguntas");
+            System.out.println("(A) Listar");
+            System.out.println("(B) Incluir");
+            System.out.println("(C) Alterar");
+            System.out.println("(D) Arquivar");
+            System.out.println("");
+            System.out.println("(R) Retornar ao menu anterior");
+            System.out.println("");
+            System.out.print("Opção: ");
+            opcao = console.nextLine().trim().toUpperCase();
+
+            switch (opcao) {
+                case "A":
+                    listagemMinhasPerguntas(usuarioLogado);
+                    break;
+                case "B":
+                    System.out.println("\nAJUDA AÍ 1.0");
+                    System.out.println("> Inicio > Minha área > Minhas perguntas > Incluir");
+                    System.out.print("Nova Pergunta: ");
+                    String novaPergunta = console.nextLine().trim();
+                    System.out.print("Palavras Chave (separadas por espaço): ");
+                    String palavrasChave = console.nextLine().trim();
+                    palavrasChave = palavrasChave.replace(" ", ";").toLowerCase();
+
+                    Pergunta novaPerguntaObj = new Pergunta(usuarioLogado.getId(), novaPergunta, palavrasChave);
+                    try {
+                        arqPerguntas.create(novaPerguntaObj);
+                    } catch (Exception e) {
+                        System.out.println("Erro ao incluir a pergunta: " + e.getMessage());
+                    }
+                    System.out.println("Pergunta incluída com sucesso!");
+                    break;
+                case "C":
+                    alteracaoMinhasPerguntas(usuarioLogado);
+                    break;
+                case "D":
+                    arquivamentoMinhasPerguntas(usuarioLogado);
+                    break;
+                case "R":
+
+                    break;
+                default:
+                    System.out.println("Opção inválida!");
+            }
+        } while (!opcao.equals("R"));
+    }
+
+    // Página interna de listagem de perguntas com sistema de paginação
+    private void listagemMinhasPerguntas(Usuario usuarioLogado) {
+        ArrayList<Pergunta> minhasPerguntas = new ArrayList<>();
+        ArrayList<Pergunta> perguntasPaginaAtual = new ArrayList<>();
+        int paginaAtual = 0;
+        String opcao;
+
+        // Puxa uma lista das perguntas
+        try {
+            minhasPerguntas = arqPerguntas.findByUsuario(usuarioLogado.getId(), 0);
+        } catch (Exception e) {
+            System.out.println("Erro ao listar minhas perguntas: " + e.getMessage());
+            return;
+        }
+
+        // Verifica se existe alguma pergunta cadastrada
+        if (minhasPerguntas.size() <= 0) {
+            System.out.println("Você não possui perguntas cadastradas!");
+            return;
+        }
+
+        do {
+            int inicio = paginaAtual * 10;
+            int fim = Math.min(inicio + 10, minhasPerguntas.size());
+            perguntasPaginaAtual = new ArrayList<>(minhasPerguntas.subList(inicio, fim));
+            System.out.println("\nAJUDA AÍ 1.0");
+            System.out.println("> Inicio > Minha área > Minhas perguntas > Listar");
+            int counter = inicio;
+
+            // Lista as perguntas
+            for (Pergunta pergunta : perguntasPaginaAtual) {
+                System.out.print(counter + " | " + pergunta.getId() + " | ");
+                if (pergunta.isAtiva()) {
+                    System.out.print("    Ativa | ");
+                } else {
+                    System.out.print("Arquivada | ");
+                }
+                System.out.print(pergunta.getPergunta() + "\n");
+                counter++;
+            }
+
+            System.out.println("");
+            System.out.println("(P) Próxima página");
+            System.out.println("(A) Página Anterior");
+            System.out.println(
+                    "Página " + (paginaAtual + 1) + " de " + (int) (Math.floor(minhasPerguntas.size() / 10) + 1));
+            System.out.println("");
+            System.out.println("(R) Retornar ao menu anterior");
+            System.out.println("");
+            System.out.print("Opção: ");
+            opcao = console.nextLine().trim().toUpperCase();
+
+            switch (opcao) {
+                case "P":
+                    if (minhasPerguntas.size() < (paginaAtual + 1) * 10) {
+                        System.out.println("Não há próxima página!");
+                    } else {
+                        paginaAtual++;
+                    }
+                    break;
+                case "A":
+                    if (paginaAtual <= 0) {
+                        System.out.println("Esta é a primeira página!");
+                    } else {
+                        paginaAtual--;
+                    }
+                    break;
+                case "R":
+                    break;
+                default:
+                    System.out.println("Opção inválida!");
+            }
+
+        } while (!opcao.equals("R"));
+    }
+
+    private void alteracaoMinhasPerguntas(Usuario usuarioLogado) {
+        ArrayList<Pergunta> minhasPerguntas = new ArrayList<>();
+        ArrayList<Pergunta> perguntasPaginaAtual = new ArrayList<>();
+        int paginaAtual = 0;
+        String opcao;
+
+        // Puxa uma lista das perguntas
+        try {
+            minhasPerguntas = arqPerguntas.findActiveByUsuario(usuarioLogado.getId(), 0);
+        } catch (Exception e) {
+            System.out.println("Erro ao listar minhas perguntas: " + e.getMessage());
+            return;
+        }
+
+        // Verifica se existe alguma pergunta cadastrada
+        if (minhasPerguntas.size() <= 0) {
+            System.out.println("Você não possui perguntas cadastradas!");
+            return;
+        }
+
+        do {
+            int inicio = paginaAtual * 10;
+            int fim = Math.min(inicio + 10, minhasPerguntas.size());
+            perguntasPaginaAtual = new ArrayList<>(minhasPerguntas.subList(inicio, fim));
+            System.out.println("\nAJUDA AÍ 1.0");
+            System.out.println("> Inicio > Minha área > Minhas perguntas > Alterar");
+            System.out.println("Selecione o número da pergunta que você deseja alterar:");
+            int counter = inicio;
+
+            // Lista as perguntas
+            for (Pergunta pergunta : perguntasPaginaAtual) {
+                System.out.println("(" + (counter + 1) + ") | " + pergunta.getPergunta());
+                counter++;
+            }
+
+            System.out.println("");
+            System.out.println("(P) Próxima página");
+            System.out.println("(A) Página Anterior");
+            System.out.println(
+                    "Página " + (paginaAtual + 1) + " de " + (int) (Math.floor(minhasPerguntas.size() / 10) + 1));
+            System.out.println("");
+            System.out.println("(R) Retornar ao menu anterior");
+            System.out.println("");
+            System.out.print("Opção: ");
+            opcao = console.nextLine().trim().toUpperCase();
+
+            if (!isInt(opcao)) {
+                switch (opcao) {
+                    case "P":
+                        if (minhasPerguntas.size() < (paginaAtual + 1) * 10) {
+                            System.out.println("Não há próxima página!");
+                        } else {
+                            paginaAtual++;
+                        }
+                        break;
+                    case "A":
+                        if (paginaAtual <= 0) {
+                            System.out.println("Esta é a primeira página!");
+                        } else {
+                            paginaAtual--;
+                        }
+                        break;
+                    case "R":
+                        break;
+                    default:
+                        System.out.println("Opção inválida!");
+                }
+            } else {
+                String opcaoAlteracao;
+                do {
+                    System.out.println("O que deseja alterar?");
+                    System.out.println("(1) Alterar Pergunta");
+                    System.out.println("(2) Alterar palavras-chave");
+                    System.out.println("(R) Retornar ao menu anterior");
+                    opcaoAlteracao = console.nextLine().trim().toUpperCase();
+                    if (isInt(opcaoAlteracao)) {
+                        int index = Integer.parseInt(opcao);
+                        if (index >= 0 && index < minhasPerguntas.size()) {
+                            Pergunta perguntaSelecionada = minhasPerguntas.get(index);
+                            change(perguntaSelecionada, Integer.parseInt(opcaoAlteracao));
+                        } else {
+                            System.out.println("Número inválido!");
+                        }
+
+                    }
+                } while (!opcaoAlteracao.equals("R"));
+            }
+
+        } while (!opcao.equals("R"));
+    }
+
+    private void change(Pergunta pergunta, int opcaoAlteracao) {
+        switch (opcaoAlteracao) {
+            case 1:
+                System.out.print("Digite a nova pergunta: ");
+                String novaPergunta = console.nextLine().trim();
+                pergunta.setPergunta(novaPergunta);
+                try {
+                    arqPerguntas.update(pergunta);
+                    System.out.println("Pergunta atualizada com sucesso!");
+                } catch (Exception e) {
+                    System.out.println("Erro ao atualizar a pergunta: " + e.getMessage());
+                }
+                break;
+            case 2:
+                System.out.print("Digite as novas palavras-chave (separadas por espaço): ");
+                String novasPalavrasChave = console.nextLine().trim().replace(" ", ";");
+                pergunta.setPalavrasChave(novasPalavrasChave);
+                try {
+                    arqPerguntas.update(pergunta);
+                    System.out.println("Palavras-chave atualizadas com sucesso!");
+                } catch (Exception e) {
+                    System.out.println("Erro ao atualizar as palavras-chave: " + e.getMessage());
+                }
+                break;
+            default:
+                System.out.println("Opção inválida!");
+        }
+    }
+
+    private void arquivamentoMinhasPerguntas(Usuario usuarioLogado) {
+        ArrayList<Pergunta> minhasPerguntas = new ArrayList<>();
+        ArrayList<Pergunta> perguntasPaginaAtual = new ArrayList<>();
+        int paginaAtual = 0;
+        String opcao;
+
+        // Puxa uma lista das perguntas
+        try {
+            minhasPerguntas = arqPerguntas.findActiveByUsuario(usuarioLogado.getId(), 0);
+        } catch (Exception e) {
+            System.out.println("Erro ao listar minhas perguntas: " + e.getMessage());
+            return;
+        }
+
+        // Verifica se existe alguma pergunta cadastrada
+        if (minhasPerguntas.size() <= 0) {
+            System.out.println("Você não possui perguntas cadastradas!");
+            return;
+        }
+
+        do {
+            int inicio = paginaAtual * 10;
+            int fim = Math.min(inicio + 10, minhasPerguntas.size());
+            perguntasPaginaAtual = new ArrayList<>(minhasPerguntas.subList(inicio, fim));
+            System.out.println("\nAJUDA AÍ 1.0");
+            System.out.println("> Inicio > Minha área > Minhas perguntas > Alterar");
+            System.out.println("Selecione o número da pergunta que você deseja arquivar:");
+            int counter = inicio;
+
+            // Lista as perguntas
+            for (Pergunta pergunta : perguntasPaginaAtual) {
+                System.out.println("(" + (counter + 1) + ") | " + pergunta.getPergunta());
+                counter++;
+            }
+
+            System.out.println("");
+            System.out.println("(P) Próxima página");
+            System.out.println("(A) Página Anterior");
+            System.out.println(
+                    "Página " + (paginaAtual + 1) + " de " + (int) (Math.floor(minhasPerguntas.size() / 10) + 1));
+            System.out.println("");
+            System.out.println("(R) Retornar ao menu anterior");
+            System.out.println("");
+            System.out.print("Opção: ");
+            opcao = console.nextLine().trim().toUpperCase();
+
+            if (!isInt(opcao)) {
+                switch (opcao) {
+                    case "P":
+                        if (minhasPerguntas.size() < (paginaAtual + 1) * 10) {
+                            System.out.println("Não há próxima página!");
+                        } else {
+                            paginaAtual++;
+                        }
+                        break;
+                    case "A":
+                        if (paginaAtual <= 0) {
+                            System.out.println("Esta é a primeira página!");
+                        } else {
+                            paginaAtual--;
+                        }
+                        break;
+                    case "R":
+                        break;
+                    default:
+                        System.out.println("Opção inválida!");
+                }
+            } else {
+                String opcaoArquivamento;
+                System.out.println("Tem certez que deseja arquivar a pergunta?");
+                System.out.println("Digite \"arquivar\" para prosseguir");
+                System.out.println("(R) Cancelar e retornar ao menu anterior");
+                opcaoArquivamento = console.nextLine().trim().toUpperCase();
+                int index = Integer.parseInt(opcao);
+                if (index >= 0 && index < minhasPerguntas.size()) {
+                    Pergunta perguntaSelecionada = minhasPerguntas.get(index);
+                    switch (opcaoArquivamento) {
+                        case "ARQUIVAR":
+                            try {
+                                arqPerguntas.arquivar(index);
+                            } catch (Exception e) {
+                                System.out.println("Erro ao arquivar a pergunta: " + e.getMessage());
+                            }
+                            break;
+                        case "R":
+                            break;
+                        default:
+                            System.out.println("Opção inválida!");
+                    }
+                } else {
+                    System.out.println("Número inválido!");
+                }
+            }
+
+        } while (!opcao.equals("R"));
+    }
+
+    private boolean isInt(String str) {
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     public static void main(String[] args) {

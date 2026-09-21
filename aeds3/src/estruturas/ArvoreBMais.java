@@ -14,8 +14,8 @@
 package estruturas;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 
 // Esta versão da árvore funciona apenas como um conjunto de par de chaves.
 // A primeira chave pode repetir na árvore, mas não o par de chaves, 
@@ -186,6 +186,41 @@ public class ArvoreBMais<T extends RegistroArvoreBMais<T>> {
             ArrayList<T> resposta = new ArrayList<>();
             return resposta;
         }
+    }
+
+    public ArrayList<T> readAll() throws Exception {
+        ArrayList<T> resposta = new ArrayList<>();
+
+        arquivo.seek(0);
+        long pagina = arquivo.readLong();
+        if (pagina == -1)
+            return resposta;
+
+        Pagina pa;
+        byte[] buffer;
+        while (true) {
+            arquivo.seek(pagina);
+            pa = new Pagina(construtor, ordem);
+            buffer = new byte[pa.TAMANHO_PAGINA];
+            arquivo.read(buffer);
+            pa.fromByteArray(buffer);
+
+            if (pa.filhos.get(0) == -1)
+                break;
+            pagina = pa.filhos.get(0);
+        }
+
+        while (pagina != -1) {
+            arquivo.seek(pagina);
+            pa = new Pagina(construtor, ordem);
+            buffer = new byte[pa.TAMANHO_PAGINA];
+            arquivo.read(buffer);
+            pa.fromByteArray(buffer);
+            resposta.addAll(pa.elementos);
+            pagina = pa.proxima;
+        }
+
+        return resposta;
     }
 
     // Busca recursiva. Este método recebe a referência de uma página e busca
