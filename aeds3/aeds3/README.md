@@ -1,4 +1,4 @@
-# AJUDA AÍ 1.0 — Trabalho Prático 1 (AEDs III)
+# Trabalho Prático 1 (AEDs III)
 
 ## Participantes
 
