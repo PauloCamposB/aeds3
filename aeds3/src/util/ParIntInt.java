@@ -20,8 +20,8 @@ public class ParIntInt implements RegistroArvoreBMais<ParIntInt> {
         this.idPergunta = idPergunta;
     }
 
-    public int getIdUsuario() { return this.idUsuario; }
-    public int getIdPergunta() { return this.idPergunta; }
+    public int getIdUsuario() { return idUsuario; }
+    public int getIdPergunta() { return idPergunta; }
 
     @Override
     public ParIntInt clone() {
@@ -35,9 +35,14 @@ public class ParIntInt implements RegistroArvoreBMais<ParIntInt> {
 
     @Override
     public int compareTo(ParIntInt o) {
-        // Ordena primeiramente pelo ID do Usuário (Para agrupar perguntas do mesmo usuário)
+        // Ordena primeiramente pelo ID do Usuário (agrupa as perguntas do mesmo usuário)
         if (this.idUsuario != o.idUsuario) {
             return Integer.compare(this.idUsuario, o.idUsuario);
+        }
+        // idPergunta == -1 funciona como coringa: permite buscar todas as
+        // perguntas de um usuário com new ParIntInt(idUsuario, -1)
+        if (this.idPergunta == -1 || o.idPergunta == -1) {
+            return 0;
         }
         // Desempata pelo ID da Pergunta
         return Integer.compare(this.idPergunta, o.idPergunta);
