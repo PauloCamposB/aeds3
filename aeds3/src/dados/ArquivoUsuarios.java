@@ -1,9 +1,9 @@
 package dados;
 
-import util.ParEmailID;
 import entidades.Usuario;
 import estruturas.Arquivo;
 import estruturas.HashExtensivel;
+import util.ParEmailID;
 import util.Seguranca;
 
 public class ArquivoUsuarios extends Arquivo<Usuario> {
@@ -59,29 +59,26 @@ public class ArquivoUsuarios extends Arquivo<Usuario> {
         return null;
     }
 
-    // Atualiza o e-mail na Tabela Hash se o e-mail tiver mudado
+    
     public boolean atualizarEmail(Usuario u, String emailAntigo, String novoEmail) throws Exception {
-        // Verifica se o novo email ja pertence a outro usuario
         ParEmailID existe = indiceEmail.read(ParEmailID.hash(novoEmail));
         if (existe != null && existe.getId() != -1 && existe.getId() != u.getId()) {
             throw new Exception("O novo e-mail ja esta em uso por outro usuario!");
         }
 
-        // Remove a chave antiga da Tabela Hash
         indiceEmail.delete(ParEmailID.hash(emailAntigo));
 
-        // Atualiza a entidade
         u.setEmail(novoEmail);
         boolean ok = super.update(u);
 
-        // Insere a nova chave na Tabela Hash
+        
         if (ok) {
             indiceEmail.create(new ParEmailID(novoEmail, u.getId()));
         }
         return ok;
     }
 
-    // Atualiza senha criptografando novamente
+   
     public boolean atualizarSenha(Usuario u, String novaSenha) throws Exception {
         u.setHashSenha(Seguranca.hashSHA256(novaSenha));
         return super.update(u);

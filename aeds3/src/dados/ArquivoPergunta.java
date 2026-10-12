@@ -10,12 +10,13 @@ import util.ParIntInt;
 public class ArquivoPergunta extends Arquivo<Pergunta> {
 
     private ArvoreBMais<ParIntInt> indiceUsuarioPergunta;
+    private ArquivoUsuarios arqUsuarios; 
 
-    public ArquivoPergunta() throws Exception {
+    public ArquivoPergunta(ArquivoUsuarios arqUsuarios) throws Exception {
         super("perguntas", Pergunta.class.getConstructor());
-        
-        // Inicializa a árvore B+ de grau 5 para o índice 1:N
-        // O diretório "dados/perguntas" será criado automaticamente pela classe Arquivo
+        this.arqUsuarios = arqUsuarios;
+
+ 
         indiceUsuarioPergunta = new ArvoreBMais<>(
             ParIntInt.class.getConstructor(),
             5,
@@ -25,65 +26,43 @@ public class ArquivoPergunta extends Arquivo<Pergunta> {
 
     @Override
     public int create(Pergunta p) throws Exception {
-        // A classe pai Arquivo.java insere o registro e gera o id
-        int id = super.create(p);
-        p.setId(id); // garante a att do id
+        
+        if (arqUsuarios.read(p.getIdUsuario()) == null) {
+            throw new Exception("Usuário inexistente: não é possível criar a pergunta.");
+        }
 
-        // Adiciona a associação [idUsuario, idPergunta] na Árvore B+
+       
+        int id = super.create(p);
+        p.setId(id);
+
+        
         indiceUsuarioPergunta.create(new ParIntInt(p.getIdUsuario(), p.getId()));
 
         return id;
     }
 
-    // perguntas não são excluídas fisicamente, mas arquivadas
+   
     public boolean arquivar(int idPergunta) throws Exception {
         Pergunta p = super.read(idPergunta);
-        if (p != null) {
+        if (p != null && p.isAtiva()) {
             p.setAtiva(false);
+            p.setAlteracao(System.currentTimeMillis());
             return super.update(p);
         }
         return false;
     }
 
-    public boolean desarquivar(int idPergunta) throws Exception {
-        Pergunta p = super.read(idPergunta);
-        if (p != null) {
-            p.setAtiva(true);
-            return super.update(p);
-        }
-        return false;
-    }
-
-    public Pergunta getPergunta(int idPergunta) throws Exception {
-        return super.read(idPergunta);
-    }
-
-    public boolean updatePergunta(Pergunta p) throws Exception {
-        return super.update(p);
-    }
-
-    public ArrayList<Pergunta> findByUsuario(int idUsuario, int page) throws Exception {
+   
+    public ArrayList<Pergunta> readByUsuario(int idUsuario) throws Exception {
         ArrayList<Pergunta> lista = new ArrayList<>();
-        ArrayList<ParIntInt> chaves = indiceUsuarioPergunta.readAll();
-        for (ParIntInt chave : chaves) {
-            if (chave.getIdUsuario() == idUsuario) {
-                Pergunta p = super.read(chave.getIdPergunta());
-                if (p != null) {
-                    lista.add(p);
-                }
-            }
-        }
-        return lista;
-    }
-    public ArrayList<Pergunta> findActiveByUsuario(int idUsuario, int page) throws Exception {
-        ArrayList<Pergunta> lista = new ArrayList<>();
-        ArrayList<ParIntInt> chaves = indiceUsuarioPergunta.readAll();
-        for (ParIntInt chave : chaves) {
-            if (chave.getIdUsuario() == idUsuario) {
-                Pergunta p = super.read(chave.getIdPergunta());
-                if (p != null && p.isAtiva()) {
-                    lista.add(p);
-                }
+
+        
+        ArrayList<ParIntInt> pares = indiceUsuarioPergunta.read(new ParIntInt(idUsuario, -1));
+
+        for (ParIntInt par : pares) {
+            Pergunta p = super.read(par.getIdPergunta());
+            if (p != null) {
+                lista.add(p);
             }
         }
         return lista;
