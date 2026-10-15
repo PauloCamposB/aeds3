@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.Scanner;
 
 /**
- * Buscar perguntas / Perguntas mais recentes, com paginação de 5 em 5.
+ * Buscar perguntas / Perguntas mais recentes
  */
 public class MenuBusca {
 
@@ -48,12 +48,12 @@ public class MenuBusca {
         } while (!opcao.equals("R"));
     }
 
-    // ------------------------------------------------- PERGUNTAS MAIS RECENTES
+    //perguntas recentes
     private void perguntasRecentes() throws Exception {
         int pagina = 0;
         while (true) {
             int totalPaginas = arqPerguntas.totalPaginasRecentes();
-            if (pagina >= totalPaginas) pagina = totalPaginas - 1; // ex.: pergunta arquivada esvaziou a última página
+            if (pagina >= totalPaginas) pagina = totalPaginas - 1; //  pergunta arquivada esvaziou a última página
 
             ArrayList<Pergunta> perguntas = arqPerguntas.listarRecentes(pagina);
 
@@ -105,11 +105,7 @@ public class MenuBusca {
         }
     }
 
-    /**
-     * PONTO DE INTEGRAÇÃO com o Membro 4 (tela da pergunta com respostas).
-     * Quando a tela dele existir, é só trocar o corpo por algo como:
-     *     new MenuPergunta(..., idPergunta, ...).exibir();
-     */
+    
     private void abrirPergunta(int idPergunta) throws Exception {
         Pergunta p = arqPerguntas.read(idPergunta);
         if (p == null) {
