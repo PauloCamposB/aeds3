@@ -7,11 +7,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-/**
- * Par (data de criação, idPergunta) usado no índice de perguntas por data.
- * A ordem é DECRESCENTE pela data: as perguntas mais recentes vêm primeiro
- * na árvore B+, então a listagem sai pronta, sem precisar ordenar.
- */
+
 public class ParLongInt implements RegistroArvoreBMais<ParLongInt> {
     private long data;
     private int idPergunta;
@@ -40,12 +36,11 @@ public class ParLongInt implements RegistroArvoreBMais<ParLongInt> {
 
     @Override
     public int compareTo(ParLongInt o) {
-        // Data invertida => ordem decrescente (mais recente primeiro)
+        //  ordem decrescente das datas
         if (this.data != o.data) {
             return Long.compare(o.data, this.data);
         }
-        // Desempate pelo ID, para que duas perguntas criadas no mesmo
-        // milissegundo não tenham a mesma chave
+        // desempate pelo ID, para que duas perguntas
         return Integer.compare(this.idPergunta, o.idPergunta);
     }
 
