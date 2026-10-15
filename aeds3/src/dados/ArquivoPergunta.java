@@ -11,7 +11,7 @@ import util.ParLongInt;
 public class ArquivoPergunta extends Arquivo<Pergunta> {
 
     private ArvoreBMais<ParIntInt> indiceUsuarioPergunta;
-    private ArvoreBMais<ParLongInt> indiceData; // data de criação (decrescente) -> idPergunta
+    private ArvoreBMais<ParLongInt> indiceData; // data de criação decrescente que é o idPergunta
     private ArquivoUsuarios arqUsuarios; 
 
     public ArquivoPergunta(ArquivoUsuarios arqUsuarios) throws Exception {
@@ -91,7 +91,7 @@ public class ArquivoPergunta extends Arquivo<Pergunta> {
         return lista;
     }
 
-    // ------------------------------------------------------- PERGUNTAS RECENTES
+    // perguntas recentes
 
     public static final int TAMANHO_PAGINA = 5;
 
@@ -108,13 +108,13 @@ public class ArquivoPergunta extends Arquivo<Pergunta> {
         return ativas;
     }
 
-    /** Total de páginas de perguntas ativas (mínimo 1, mesmo sem perguntas). */
+    //total de pgt ativas
     public int totalPaginasRecentes() throws Exception {
         int total = recentesAtivas().size();
         return Math.max(1, (total + TAMANHO_PAGINA - 1) / TAMANHO_PAGINA);
     }
 
-    /** Uma página (5 perguntas) de perguntas ativas; pagina começa em 0. */
+    /** Uma página ,5 perguntas, de perguntas ativas - começa em 0. */
     public ArrayList<Pergunta> listarRecentes(int pagina) throws Exception {
         ArrayList<Pergunta> ativas = recentesAtivas();
         ArrayList<Pergunta> resultado = new ArrayList<>();
