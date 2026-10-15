@@ -131,7 +131,7 @@ public class MenuAcesso {
 
             switch (opcao) {
                 case "A": minhaArea(usuarioLogado); break;
-                case "B": System.out.println("Funcionalidade reservada para a próxima etapa (TP02)."); break;
+                case "B": new MenuBusca(arqPerguntas, usuarioLogado, console).menu(); break;
                 case "S": System.out.println("Saindo da área pessoal..."); break;
                 default: System.out.println("Opção inválida!");
             }
