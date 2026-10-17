@@ -2,6 +2,7 @@ package visao;
 
 import dados.ArquivoPergunta;
 import entidades.Pergunta;
+import entidades.Resposta;
 import entidades.Usuario;
 
 import java.text.SimpleDateFormat;
@@ -20,6 +21,7 @@ public class MenuPerguntas {
     private static final int MAX_CARACTERES = 5000; // evita estourar o limite de tamanho do registro
 
     private final ArquivoPergunta arqPerguntas;
+    private final MenuRespostas menuRespostas;
     private final Usuario usuario;
     private final Scanner console;
     private final SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -27,8 +29,9 @@ public class MenuPerguntas {
     // Associação entre o número mostrado na tela e o ID real da pergunta
     private ArrayList<Integer> idsListados = new ArrayList<>();
 
-    public MenuPerguntas(ArquivoPergunta arqPerguntas, Usuario usuario, Scanner console) {
+    public MenuPerguntas(ArquivoPergunta arqPerguntas, MenuRespostas menuRespostas, Usuario usuario, Scanner console) {
         this.arqPerguntas = arqPerguntas;
+        this.menuRespostas = menuRespostas;
         this.usuario = usuario;
         this.console = console;
     }
@@ -67,8 +70,63 @@ public class MenuPerguntas {
         if (!mostrarLista()) {
             return;
         }
-        System.out.print("\nPressione ENTER para continuar...");
-        console.nextLine();
+        Pergunta p = escolherPergunta("abrir");
+        if (p != null) {
+            abrirPergunta(p.getId());
+        }
+    }
+
+    /**
+     * Tela da pergunta com as respostas de outros usuários. O autor pode abrir uma
+     * resposta e arquivá-la, além de alterar ou arquivar a própria pergunta.
+     */
+    private void abrirPergunta(int idPergunta) throws Exception {
+        String caminho = "> Início > Minha área > Minhas perguntas > Pergunta";
+        while (true) {
+            // Relê a pergunta a cada volta: pode ter sido alterada ou arquivada
+            Pergunta p = arqPerguntas.read(idPergunta);
+            if (p == null || p.getIdUsuario() != usuario.getId()) {
+                System.out.println("Pergunta não encontrada.");
+                return;
+            }
+
+            System.out.println("\nAJUDA AÍ 1.0");
+            System.out.println("------------");
+            System.out.println("\n" + caminho + "\n");
+            if (!p.isAtiva()) {
+                System.out.println("ARQUIVADA");
+            }
+            System.out.println(formato.format(new Date(p.getCriacao())));
+            System.out.println(p.getPergunta());
+            System.out.println("Palavras chave: " + p.getPalavrasChave());
+
+            ArrayList<Resposta> respostas = menuRespostas.mostrarRespostas(p);
+
+            if (!respostas.isEmpty()) {
+                System.out.println("Digite o número da resposta para abri-la");
+            }
+            if (p.isAtiva()) {
+                System.out.println("(A) Alterar dados da pergunta");
+                System.out.println("(B) Arquivar pergunta");
+            }
+            System.out.println("\n(R) Retornar");
+            System.out.print("\nOpção: ");
+            String entrada = console.nextLine().trim().toUpperCase();
+
+            if (entrada.equals("R")) {
+                return;
+            } else if (entrada.equals("A") && p.isAtiva()) {
+                alterarPergunta(p);
+            } else if (entrada.equals("B") && p.isAtiva()) {
+                arquivarPergunta(p);
+            } else {
+                Resposta r = menuRespostas.escolherResposta(entrada, respostas);
+                if (r != null) {
+                    // moderacao = true: o autor da pergunta pode arquivar respostas de terceiros
+                    menuRespostas.abrirResposta(p, r, caminho, true);
+                }
+            }
+        }
     }
 
     /**
@@ -143,6 +201,10 @@ public class MenuPerguntas {
         if (p == null) {
             return;
         }
+        alterarPergunta(p);
+    }
+
+    private void alterarPergunta(Pergunta p) throws Exception {
         if (!p.isAtiva()) {
             System.out.println("Perguntas arquivadas não podem ser alteradas.");
             return;
@@ -191,6 +253,10 @@ public class MenuPerguntas {
         if (p == null) {
             return;
         }
+        arquivarPergunta(p);
+    }
+
+    private void arquivarPergunta(Pergunta p) throws Exception {
         if (!p.isAtiva()) {
             System.out.println("Esta pergunta já está arquivada.");
             return;

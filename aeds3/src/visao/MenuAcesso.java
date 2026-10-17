@@ -1,6 +1,8 @@
 package visao;
 
+import dados.ArquivoAvaliacao;
 import dados.ArquivoPergunta;
+import dados.ArquivoResposta;
 import dados.ArquivoUsuarios;
 import entidades.Usuario;
 import java.util.Scanner;
@@ -10,11 +12,15 @@ public class MenuAcesso {
 
     private ArquivoUsuarios arqUsuarios;
     private ArquivoPergunta arqPerguntas;
+    private ArquivoResposta arqRespostas;
+    private ArquivoAvaliacao arqAvaliacoes;
     private static Scanner console = new Scanner(System.in);
 
     public MenuAcesso() throws Exception {
         arqUsuarios = new ArquivoUsuarios();
         arqPerguntas = new ArquivoPergunta(arqUsuarios);
+        arqRespostas = new ArquivoResposta(arqUsuarios, arqPerguntas);
+        arqAvaliacoes = new ArquivoAvaliacao(arqUsuarios, arqRespostas);
     }
 
     public Usuario inicio() throws Exception{
@@ -119,6 +125,8 @@ public class MenuAcesso {
     }
 
     private void menuPrincipal(Usuario usuarioLogado) throws Exception {
+        // Telas de respostas e avaliações, compartilhadas pela busca e pela área do usuário
+        MenuRespostas menuRespostas = new MenuRespostas(arqUsuarios, arqPerguntas, arqRespostas, arqAvaliacoes, usuarioLogado, console);
         String opcao = "";
         do {
             System.out.println("\nAJUDA AÍ 1.0");
@@ -130,15 +138,15 @@ public class MenuAcesso {
             opcao = console.nextLine().trim().toUpperCase();
 
             switch (opcao) {
-                case "A": minhaArea(usuarioLogado); break;
-                case "B": new MenuBusca(arqPerguntas, usuarioLogado, console).menu(); break;
+                case "A": minhaArea(usuarioLogado, menuRespostas); break;
+                case "B": new MenuBusca(arqPerguntas, menuRespostas, usuarioLogado, console).menu(); break;
                 case "S": System.out.println("Saindo da área pessoal..."); break;
                 default: System.out.println("Opção inválida!");
             }
         } while (!opcao.equals("S"));
     }
 
-    private void minhaArea(Usuario usuarioLogado) throws Exception {
+    private void minhaArea(Usuario usuarioLogado, MenuRespostas menuRespostas) throws Exception {
         String opcao = "";
         do {
             System.out.println("\nAJUDA AÍ 1.0");
@@ -146,16 +154,16 @@ public class MenuAcesso {
             System.out.println("(A) Meus dados");
             System.out.println("(B) Minhas perguntas");
             System.out.println("(C) Minhas respostas");
-            System.out.println("(D) Meus votos");
+            System.out.println("(D) Minhas avaliações");
             System.out.println("(R) Retornar ao menu anterior");
             System.out.print("Opção: ");
             opcao = console.nextLine().trim().toUpperCase();
 
             switch (opcao) {
                 case "A": meusDados(usuarioLogado); break;
-                case "B": new MenuPerguntas(arqPerguntas, usuarioLogado, console).menu(); break;
-                case "C":
-                case "D": System.out.println("Opção não disponível nesta etapa."); break;
+                case "B": new MenuPerguntas(arqPerguntas, menuRespostas, usuarioLogado, console).menu(); break;
+                case "C": menuRespostas.minhasRespostas(); break;
+                case "D": menuRespostas.minhasAvaliacoes(); break;
                 case "R": break;
                 default: System.out.println("Opção inválida!");
             }

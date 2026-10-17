@@ -15,12 +15,14 @@ import java.util.Scanner;
 public class MenuBusca {
 
     private final ArquivoPergunta arqPerguntas;
+    private final MenuRespostas menuRespostas;
     private final Usuario usuario;
     private final Scanner console;
     private final SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
-    public MenuBusca(ArquivoPergunta arqPerguntas, Usuario usuario, Scanner console) {
+    public MenuBusca(ArquivoPergunta arqPerguntas, MenuRespostas menuRespostas, Usuario usuario, Scanner console) {
         this.arqPerguntas = arqPerguntas;
+        this.menuRespostas = menuRespostas;
         this.usuario = usuario;
         this.console = console;
     }
@@ -105,18 +107,8 @@ public class MenuBusca {
         }
     }
 
-    
+    // Tela da pergunta com as respostas (ordenadas por nota), responder e avaliar
     private void abrirPergunta(int idPergunta) throws Exception {
-        Pergunta p = arqPerguntas.read(idPergunta);
-        if (p == null) {
-            System.out.println("Pergunta não encontrada.");
-            return;
-        }
-        System.out.println("\nPERGUNTA");
-        System.out.println(formato.format(new Date(p.getCriacao())));
-        System.out.println(p.getPergunta());
-        System.out.println("Palavras chave: " + p.getPalavrasChave());
-        System.out.print("\nPressione ENTER para continuar...");
-        console.nextLine();
+        menuRespostas.abrirPergunta(idPergunta, "> Início > Buscar perguntas > Perguntas mais recentes");
     }
 }
