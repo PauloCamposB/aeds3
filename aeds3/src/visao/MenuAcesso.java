@@ -21,20 +21,19 @@ public class MenuAcesso {
         arqPerguntas = new ArquivoPergunta(arqUsuarios);
         arqRespostas = new ArquivoResposta(arqUsuarios, arqPerguntas);
         arqAvaliacoes = new ArquivoAvaliacao(arqUsuarios, arqRespostas);
-<<<<<<< HEAD
     }
 
     // Cada usuário logado tem o seu controlador de respostas/avaliações
     private MenuResposta criarMenuResposta(Usuario usuarioLogado) {
         return new MenuResposta(arqPerguntas, arqRespostas, arqAvaliacoes, arqUsuarios, usuarioLogado, console);
-=======
->>>>>>> origin/main
     }
 
     public Usuario inicio() throws Exception{
         String opcao = "";
         do {
             System.out.println("\n-----------------------------");
+            System.out.println("AJUDA AÍ 1.0");
+            System.out.println("-----------------------------");
             System.out.println("1) Acesso ao Sistema (Login)");
             System.out.println("2) Novo Usuário (Primeiro Acesso)");
             System.out.println("S) Sair");
@@ -131,10 +130,9 @@ public class MenuAcesso {
     }
 
     private void menuPrincipal(Usuario usuarioLogado) throws Exception {
-        // Telas de respostas e avaliações, compartilhadas pela busca e pela área do usuário
-        MenuRespostas menuRespostas = new MenuRespostas(arqUsuarios, arqPerguntas, arqRespostas, arqAvaliacoes, usuarioLogado, console);
         String opcao = "";
         do {
+            System.out.println("\nAJUDA AÍ 1.0");
             System.out.println("------------");
             System.out.println("\n> Início\n");
             System.out.println("(A) Minha área");
@@ -144,48 +142,33 @@ public class MenuAcesso {
             opcao = console.nextLine().trim().toUpperCase();
 
             switch (opcao) {
-<<<<<<< HEAD
                 case "A": minhaArea(usuarioLogado); break;
                 case "B": new MenuBusca(arqPerguntas, arqUsuarios, criarMenuResposta(usuarioLogado), usuarioLogado, console).menu(); break;
-=======
-                case "A": minhaArea(usuarioLogado, menuRespostas); break;
-                case "B": new MenuBusca(arqPerguntas, menuRespostas, usuarioLogado, console).menu(); break;
->>>>>>> origin/main
                 case "S": System.out.println("Saindo da área pessoal..."); break;
                 default: System.out.println("Opção inválida!");
             }
         } while (!opcao.equals("S"));
     }
 
-    private void minhaArea(Usuario usuarioLogado, MenuRespostas menuRespostas) throws Exception {
+    private void minhaArea(Usuario usuarioLogado) throws Exception {
         String opcao = "";
         do {
+            System.out.println("\nAJUDA AÍ 1.0");
             System.out.println("------------");
             System.out.println("\n> Início > Minha área\n");
             System.out.println("(A) Meus dados");
             System.out.println("(B) Minhas perguntas");
             System.out.println("(C) Minhas respostas");
             System.out.println("(D) Minhas avaliações");
-<<<<<<< HEAD
             System.out.println("\n(R) Retornar ao menu anterior");
             System.out.print("\nOpção: ");
-=======
-            System.out.println("(R) Retornar ao menu anterior");
-            System.out.print("Opção: ");
->>>>>>> origin/main
             opcao = console.nextLine().trim().toUpperCase();
 
             switch (opcao) {
                 case "A": meusDados(usuarioLogado); break;
-<<<<<<< HEAD
                 case "B": new MenuPerguntas(arqPerguntas, criarMenuResposta(usuarioLogado), usuarioLogado, console).menu(); break;
                 case "C": criarMenuResposta(usuarioLogado).minhasRespostas(); break;
                 case "D": criarMenuResposta(usuarioLogado).minhasAvaliacoes(); break;
-=======
-                case "B": new MenuPerguntas(arqPerguntas, menuRespostas, usuarioLogado, console).menu(); break;
-                case "C": menuRespostas.minhasRespostas(); break;
-                case "D": menuRespostas.minhasAvaliacoes(); break;
->>>>>>> origin/main
                 case "R": break;
                 default: System.out.println("Opção inválida!");
             }
@@ -195,6 +178,7 @@ public class MenuAcesso {
     private void meusDados(Usuario usuarioLogado) throws Exception {
         String opcao = "";
         do {
+            System.out.println("\nAJUDA AÍ 1.0");
             System.out.println("> Inicio > Minha área > Meus dados");
             System.out.println("(A) Alterar nome");
             System.out.println("(B) Alterar email");

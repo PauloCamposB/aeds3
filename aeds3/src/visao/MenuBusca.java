@@ -15,26 +15,16 @@ import java.util.Scanner;
 public class MenuBusca {
 
     private final ArquivoPergunta arqPerguntas;
-<<<<<<< HEAD
     private final ArquivoUsuarios arqUsuarios;
     private final MenuResposta menuResposta;
-=======
-    private final MenuRespostas menuRespostas;
->>>>>>> origin/main
     private final Usuario usuario;
     private final Scanner console;
     private final SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy 'às' HH:mm");
 
-<<<<<<< HEAD
     public MenuBusca(ArquivoPergunta arqPerguntas, ArquivoUsuarios arqUsuarios, MenuResposta menuResposta, Usuario usuario, Scanner console) {
         this.arqPerguntas = arqPerguntas;
         this.arqUsuarios = arqUsuarios;
         this.menuResposta = menuResposta;
-=======
-    public MenuBusca(ArquivoPergunta arqPerguntas, MenuRespostas menuRespostas, Usuario usuario, Scanner console) {
-        this.arqPerguntas = arqPerguntas;
-        this.menuRespostas = menuRespostas;
->>>>>>> origin/main
         this.usuario = usuario;
         this.console = console;
     }
@@ -73,6 +63,7 @@ public class MenuBusca {
 
             ArrayList<Pergunta> perguntas = arqPerguntas.listarRecentes(pagina);
 
+            System.out.println("\nAJUDA AÍ 1.0");
             System.out.println("------------");
             System.out.println("\n> Início > Buscar perguntas > Perguntas mais recentes");
             System.out.println("Página " + (pagina + 1) + " de " + totalPaginas + "\n");
@@ -121,16 +112,10 @@ public class MenuBusca {
         }
     }
 
-<<<<<<< HEAD
     
     // Nome do autor da pergunta (o ID do usuário é resolvido no arquivo de usuários)
     private String nomeAutor(Pergunta p) throws Exception {
         Usuario autor = arqUsuarios.read(p.getIdUsuario());
         return autor != null ? autor.getNome() : "usuário desconhecido";
-=======
-    // Tela da pergunta com as respostas (ordenadas por nota), responder e avaliar
-    private void abrirPergunta(int idPergunta) throws Exception {
-        menuRespostas.abrirPergunta(idPergunta, "> Início > Buscar perguntas > Perguntas mais recentes");
->>>>>>> origin/main
     }
 }

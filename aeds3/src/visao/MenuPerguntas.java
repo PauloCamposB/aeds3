@@ -20,11 +20,7 @@ public class MenuPerguntas {
     private static final int MAX_CARACTERES = 5000; // evita estourar o limite de tamanho do registro
 
     private final ArquivoPergunta arqPerguntas;
-<<<<<<< HEAD
     private final MenuResposta menuResposta;
-=======
-    private final MenuRespostas menuRespostas;
->>>>>>> origin/main
     private final Usuario usuario;
     private final Scanner console;
     private final SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -32,15 +28,9 @@ public class MenuPerguntas {
     // Associação entre o número mostrado na tela e o ID real da pergunta
     private ArrayList<Integer> idsListados = new ArrayList<>();
 
-<<<<<<< HEAD
     public MenuPerguntas(ArquivoPergunta arqPerguntas, MenuResposta menuResposta, Usuario usuario, Scanner console) {
         this.arqPerguntas = arqPerguntas;
         this.menuResposta = menuResposta;
-=======
-    public MenuPerguntas(ArquivoPergunta arqPerguntas, MenuRespostas menuRespostas, Usuario usuario, Scanner console) {
-        this.arqPerguntas = arqPerguntas;
-        this.menuRespostas = menuRespostas;
->>>>>>> origin/main
         this.usuario = usuario;
         this.console = console;
     }
@@ -48,6 +38,7 @@ public class MenuPerguntas {
     public void menu() {
         String opcao = "";
         do {
+            System.out.println("\nAJUDA AÍ 1.0");
             System.out.println("------------");
             System.out.println("\n> Início > Minha área > Minhas perguntas\n");
             System.out.println("(A) Listar");
@@ -78,22 +69,19 @@ public class MenuPerguntas {
         if (!mostrarLista()) {
             return;
         }
-<<<<<<< HEAD
         // Ao escolher uma pergunta, o usuário vê os dados dela e as respostas dos outros usuários
-=======
->>>>>>> origin/main
         Pergunta p = escolherPergunta("abrir");
         if (p != null) {
             abrirPergunta(p.getId());
         }
     }
 
-<<<<<<< HEAD
     /** Tela da pergunta do usuário: dados, respostas de outros usuários e as opções de alterar / arquivar. */
     private void abrirPergunta(int idPergunta) throws Exception {
         String opcao = "";
         do {
             Pergunta p = arqPerguntas.read(idPergunta);
+            System.out.println("\nAJUDA AÍ 1.0");
             System.out.println("------------");
             System.out.println("\n> Início > Minha área > Minhas perguntas > Pergunta\n");
             System.out.println(formato.format(new Date(p.getCriacao())));
@@ -129,59 +117,6 @@ public class MenuPerguntas {
                     }
             }
         } while (!opcao.equals("R"));
-=======
-    /**
-     * Tela da pergunta com as respostas de outros usuários. O autor pode abrir uma
-     * resposta e arquivá-la, além de alterar ou arquivar a própria pergunta.
-     */
-    private void abrirPergunta(int idPergunta) throws Exception {
-        String caminho = "> Início > Minha área > Minhas perguntas > Pergunta";
-        while (true) {
-            // Relê a pergunta a cada volta: pode ter sido alterada ou arquivada
-            Pergunta p = arqPerguntas.read(idPergunta);
-            if (p == null || p.getIdUsuario() != usuario.getId()) {
-                System.out.println("Pergunta não encontrada.");
-                return;
-            }
-
-            System.out.println("\nAJUDA AÍ 1.0");
-            System.out.println("------------");
-            System.out.println("\n" + caminho + "\n");
-            if (!p.isAtiva()) {
-                System.out.println("ARQUIVADA");
-            }
-            System.out.println(formato.format(new Date(p.getCriacao())));
-            System.out.println(p.getPergunta());
-            System.out.println("Palavras chave: " + p.getPalavrasChave());
-
-            ArrayList<Resposta> respostas = menuRespostas.mostrarRespostas(p);
-
-            if (!respostas.isEmpty()) {
-                System.out.println("Digite o número da resposta para abri-la");
-            }
-            if (p.isAtiva()) {
-                System.out.println("(A) Alterar dados da pergunta");
-                System.out.println("(B) Arquivar pergunta");
-            }
-            System.out.println("\n(R) Retornar");
-            System.out.print("\nOpção: ");
-            String entrada = console.nextLine().trim().toUpperCase();
-
-            if (entrada.equals("R")) {
-                return;
-            } else if (entrada.equals("A") && p.isAtiva()) {
-                alterarPergunta(p);
-            } else if (entrada.equals("B") && p.isAtiva()) {
-                arquivarPergunta(p);
-            } else {
-                Resposta r = menuRespostas.escolherResposta(entrada, respostas);
-                if (r != null) {
-                    // moderacao = true: o autor da pergunta pode arquivar respostas de terceiros
-                    menuRespostas.abrirResposta(p, r, caminho, true);
-                }
-            }
-        }
->>>>>>> origin/main
     }
 
     /**
