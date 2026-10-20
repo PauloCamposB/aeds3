@@ -98,6 +98,7 @@ public class ArquivoPergunta extends Arquivo<Pergunta> {
     /** IDs das perguntas ATIVAS, da mais recente para a mais antiga. */
     private ArrayList<Pergunta> recentesAtivas() throws Exception {
         ArrayList<Pergunta> ativas = new ArrayList<>();
+        
         // read(null) devolve todos os pares, já na ordem da árvore (data decrescente)
         for (ParLongInt par : indiceData.read(null)) {
             Pergunta p = super.read(par.getIdPergunta());

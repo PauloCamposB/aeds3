@@ -6,17 +6,10 @@ import estruturas.Arquivo;
 import estruturas.ArvoreBMais;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import util.ParIntInt;
 
-/**
- * CRUD de respostas + dois índices em Árvore B+:
- *   - indicePerguntaResposta: idPergunta -> idResposta (respostas de uma pergunta)
- *   - indiceUsuarioResposta : idUsuario  -> idResposta (respostas de um usuário)
- *
- * Os dois índices reaproveitam o ParIntInt: o primeiro campo (getIdUsuario())
- * é a CHAVE de busca e o segundo (getIdPergunta()) é o VALOR (idResposta).
- * O valor -1 funciona como coringa, retornando todos os pares da chave.
- */
+
 public class ArquivoResposta extends Arquivo<Resposta> {
 
     // limite do tamanho do registro: o Arquivo guarda o tamanho em um short
@@ -125,10 +118,16 @@ public class ArquivoResposta extends Arquivo<Resposta> {
         return readByPergunta(idPergunta, false);
     }
 
-    /** Respostas de uma pergunta; com apenasAtivas = true, as arquivadas são omitidas. */
+    /** Respostas de uma pergunta, em ordem decrescente de nota; com apenasAtivas = true, as arquivadas são omitidas. */
     public ArrayList<Resposta> readByPergunta(int idPergunta, boolean apenasAtivas) throws Exception {
         ArrayList<ParIntInt> pares = indicePerguntaResposta.read(new ParIntInt(idPergunta, -1));
-        return carregar(pares, apenasAtivas);
+        ArrayList<Resposta> lista = carregar(pares, apenasAtivas);
+
+        // ordem decrescente de nota; em caso de empate, a resposta mais antiga vem primeiro
+        lista.sort(Comparator
+            .comparingInt((Resposta r) -> r.getNota()).reversed()
+            .thenComparingLong(Resposta::getCriacao));
+        return lista;
     }
 
     /** Todas as respostas (ativas e arquivadas) escritas por um usuário. */

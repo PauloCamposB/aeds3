@@ -64,6 +64,9 @@ public class ArquivoAvaliacao extends Arquivo<Avaliacao> {
         if (!r.isAtiva()) {
             throw new Exception("Resposta arquivada: não aceita novas avaliações.");
         }
+        if (r.getIdUsuario() == a.getIdUsuario()) {
+            throw new Exception("Não é permitido avaliar a própria resposta.");
+        }
 
         if (jaAvaliou(a.getIdUsuario(), a.getIdResposta())) {
             throw new Exception("Usuário já avaliou esta resposta.");
