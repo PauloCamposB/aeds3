@@ -13,6 +13,7 @@ public class ArquivoPergunta extends Arquivo<Pergunta> {
     private ArvoreBMais<ParIntInt> indiceUsuarioPergunta;
     private ArvoreBMais<ParLongInt> indiceData; // data de criação decrescente que é o idPergunta
     private ArquivoUsuarios arqUsuarios; 
+    private IndiceInvertido indicePalavras; // palavras-chave -> (idPergunta; TF)
 
     public ArquivoPergunta(ArquivoUsuarios arqUsuarios) throws Exception {
         super("perguntas", Pergunta.class.getConstructor());
@@ -34,6 +35,27 @@ public class ArquivoPergunta extends Arquivo<Pergunta> {
         // Perguntas criadas antes deste índice existir: reconstrói a partir do índice por usuário
         if (indiceData.empty() && !indiceUsuarioPergunta.empty()) {
             reconstruirIndiceData();
+        }
+
+        indicePalavras = new IndiceInvertido();
+
+        // Perguntas criadas antes do índice de palavras existir: indexa as ativas
+        if (indicePalavras.totalPerguntas() == 0) {
+            reconstruirIndicePalavras();
+        }
+    }
+
+    public IndiceInvertido getIndicePalavras() {
+        return indicePalavras;
+    }
+
+    /** Indexa todas as perguntas ativas já gravadas (só roda com o índice vazio). */
+    private void reconstruirIndicePalavras() throws Exception {
+        for (ParLongInt par : indiceData.read(null)) {
+            Pergunta p = super.read(par.getIdPergunta());
+            if (p != null && p.isAtiva()) {
+                indicePalavras.indexar(p.getId(), p.getPalavrasChave());
+            }
         }
     }
 
@@ -60,8 +82,32 @@ public class ArquivoPergunta extends Arquivo<Pergunta> {
         
         indiceUsuarioPergunta.create(new ParIntInt(p.getIdUsuario(), p.getId()));
         indiceData.create(new ParLongInt(p.getCriacao(), p.getId()));
+        indicePalavras.indexar(p.getId(), p.getPalavrasChave());
 
         return id;
+    }
+
+    /**
+     * Atualiza a pergunta mantendo o índice de palavras-chave consistente:
+     * as palavras antigas saem do índice e as novas entram.
+     */
+    @Override
+    public boolean update(Pergunta nova) throws Exception {
+        Pergunta antiga = super.read(nova.getId());
+        if (antiga == null || !super.update(nova)) {
+            return false;
+        }
+
+        if (antiga.isAtiva() && nova.isAtiva()) {
+            if (!antiga.getPalavrasChave().equals(nova.getPalavrasChave())) {
+                indicePalavras.atualizar(nova.getId(), antiga.getPalavrasChave(), nova.getPalavrasChave());
+            }
+        } else if (antiga.isAtiva()) {
+            indicePalavras.desindexar(nova.getId(), antiga.getPalavrasChave());
+        } else if (nova.isAtiva()) {
+            indicePalavras.indexar(nova.getId(), nova.getPalavrasChave());
+        }
+        return true;
     }
 
    
@@ -70,7 +116,10 @@ public class ArquivoPergunta extends Arquivo<Pergunta> {
         if (p != null && p.isAtiva()) {
             p.setAtiva(false);
             p.setAlteracao(System.currentTimeMillis());
-            return super.update(p);
+            if (super.update(p)) {
+                indicePalavras.desindexar(p.getId(), p.getPalavrasChave());
+                return true;
+            }
         }
         return false;
     }
