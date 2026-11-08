@@ -35,9 +35,16 @@ public class IndiceInvertido {
 
     /** Indexa uma pergunta: um (id; TF) em cada termo + incrementa N. */
     public void indexar(int id, String palavrasChave) throws Exception {
-        HashMap<String, Float> tf = tfDe(palavrasChave);
-        for (String termo : tf.keySet())
-            lista.create(termo, new ElementoLista(id, tf.get(termo)));
+        ArrayList<String> termos = ProcessadorTexto.extrairTermos(palavrasChave);
+        float frequencia = termos.isEmpty() ? 0 : 1.0f / termos.size();
+        for (String termo : termos) {
+            ElementoLista e = lista.read(termo, id);
+            if (e == null) {
+                lista.create(termo, new ElementoLista(id, frequencia));
+            } else {
+                lista.update(termo, new ElementoLista(id, frequencia + e.getFrequencia()));
+            }
+        }
         lista.incrementaEntidades();
     }
 
